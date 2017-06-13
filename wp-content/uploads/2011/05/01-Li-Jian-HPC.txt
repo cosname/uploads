@@ -1,0 +1,50 @@
+
+# compiler
+require(compiler)
+la1 <- function(X, FUN, ...) {
+    FUN <- match.fun(FUN)
+    if (!is.list(X))
+	X <- as.list(X)
+    rval <- vector("list", length(X))
+    for(i in seq(along = X))
+	rval[i] <- list(FUN(X[[i]], ...))
+    names(rval) <- names(X)		  # keep `names' !
+    return(rval)
+}
+la1c <- cmpfun(la1)
+y <- 1:1000
+system.time(for (i in 1:1000) la1(y, is.null))
+system.time(for (i in 1:1000) la1c(y, is.null))
+
+
+# bigmemory
+require(bigmemory)
+require(biganalytics)
+require(biglm)
+# x <- read.big.matrix("sim.csv", type ="double", header =TRUE , backingfile ="sim.bin", descriptorfile ="sim.desc ")
+# system.time(a1 <- read.csv("sim.csv"))
+system.time(a2 <- attach.resource(dget("sim.desc")))
+class(a2)
+object.size(a2)
+a2[1,]
+dim(a2)
+system.time(lmm.big <- biglm.big.matrix(VAR01 ~ VAR02 + VAR03 + VAR04 + VAR05 + VAR06 + VAR07 + VAR08 + VAR09, data=a2))
+
+# GOTO BLAS
+# Download "blasctl" from http://prs.ism.ac.jp/~nakama/SurviveGotoBLAS2/blas_control_on_R/ , and install it.
+# Download "Goto blas" from http://prs.ism.ac.jp/~nakama/SurviveGotoBLAS2/binary/windows/ , and repalce the "Rblas.dll"
+require(blasctl)
+A<-matrix(runif(3000^2),3000,3000)
+blas_get_num_procs() 
+system.time(A%*%A)
+
+blas_set_num_threads(4)
+system.time(A%*%A)
+
+
+
+
+
+
+
+

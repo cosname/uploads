@@ -1,0 +1,67 @@
+rm(list=ls())
+library(RHydro)
+library(topmodel)
+library(lattice)
+data(huagrahuma.dem)
+
+
+# see the filling sink effect
+m<-matrix(c(1,2,3,4,4,4),2,3,byrow=TRUE)
+layout(m)
+layout.show(4)    
+image(huagrahuma.dem,main="a")
+dem.filled <- sinkfind(huagrahuma.dem, cellsize=25, degree=0.1)
+difference <- dem.filled - huagrahuma.dem
+image(dem.filled,main="b")
+image(difference,main="c")
+barplot(difference,beside=TRUE,main="d")
+
+#compute topological index 
+topidx <- atb(dem.filled, cellsize=25)
+old<-atb(huagrahuma.dem,cellsize=25)
+ 
+par(mfrow=c(2,3))
+image(old$atb,main="a")
+image(topidx$atb,main="b")
+image(old$atb-topidx$atb,main="c")
+barplot(old$atb,beside=TRUE,ylim=c(0,20),main="d")
+barplot(topidx$atb,beside=TRUE,ylim=c(0,20),main="e")
+barplot(old$atb-topidx$atb,beside=TRUE,main="f")
+
+outlet(topidx$area,c(28,8),2)
+    
+catchment <- subcatch(dem.filled, c(29,8)) 
+catchment1 <- subcatch(huagrahuma.dem, c(29,8)) 
+catchment[catchment == 0] <- NA
+catchment1[catchment1 == 0] <- NA
+rivers <- river(dem.filled,topidx$atb,topidx$area,cellsize=25,thatb=12.35,tharea=10000)
+rivers1 <- river(huagrahuma.dem,old$atb,old$area,cellsize=25,thatb=12.35,tharea=10000)
+
+par(mfrow=c(2,2))
+image(rivers1,main="a")
+image(rivers,main="b")
+image(catchment1,main="c")
+image(catchment,main="d")
+
+
+data(Huagrahuma)
+#Running the model
+#Topmodel needs the following parameters: 
+# qs0 = Initial subsurface flow per unit area (m) 
+# lnTe = log of the areal average of T0 (m2/h) 
+# m = Model parameter 
+# Sr0 = Initial root zone storage deficit (m) 
+# Srmax = Maximum root zone storage deficit (m) 
+# td = Unsaturated zone time delay per unit storage deficit 
+# vch = channel flow outside the catchment catchment (m/h) 
+# vr = channel flow inside catchment (m/h) 
+# k0 = Surface hydraulic conductivity (m/h) 
+# CD = capil(lary drive, see Morel-Seytoux and Khanji (1974) 
+# dt = The timestep (hours) 
+
+Qsim <- topmodel(parameters,topidx,delay,rain,ET0)
+
+par(mfrow=c(1,1))
+plot(Qobs,xlab="Time series",col="blue")
+points(Qsim, col="red", type="l") 
+legend(7000,3.5e-04,legend=c("Observation","Simulation"),pch=c(1,NA),lty=c(NA,1),col=c("blue","red"),bty="n")

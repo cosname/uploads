@@ -1,0 +1,139 @@
+# 参会单位 
+x = c(2, 1, 3, 2, 1, 1, 2, 2, 2, 3, 1, 2, 2, 2, 2, 
+    1, 1, 1, 1, 4, 2, 2, 3, 1, 1, 2, 2, 2, 2, 3, 1, 1, 3, 1, 
+    1, 1, 1, 1, 1, 2, 2, 1, 1, 3, 3, 3, 1, 2, 1, 2, 3, 1, 2, 
+    1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 1, 3, 1, 1, 1, 2, 2, 
+    1, 1, 1, 1, 1, 3, 1, 1, 3, 1, 2, 1, 2, 1, 1, 2, 3, 2, 2, 
+    2, 3, 1, 2, 2, 3, 2, 1, 3, 2, 1, 1, 1, 1, 2, 2, 1, 3, 3, 
+    1, 1, 1, 2, 1, 2, 2, 1, 3, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 
+    2, 2)
+# pdf("institute.pdf", width = 7, height = 3, family = "GB1")
+par(mar = c(3.5, 3, 0.5, 0.1))
+barplot(table(x), names.arg = c("高校", "科研机构", 
+    "公司企业", "出版社"))
+# dev.off() 
+
+# 我的性别 
+# pdf("gender.pdf", width = 4, height = 4)
+par(mar = rep(0, 4))
+plot(1, type = "n")
+text(1, 1, "\\MA", cex = 20, vfont = c("serif", "plain"))
+# dev.off() 
+
+# 用R赶火车 
+prb = replicate(100, {
+    x = sample(c(0, 5, 10), 1, prob = c(0.7, 0.2, 0.1))
+    y = sample(c(28, 30, 32, 34), 1, prob = c(0.3, 0.4, 0.2, 0.1))
+    plot(0:40, rep(1, 41), type = "n", xlab = "time", ylab = "",
+        axes = FALSE)
+    axis(1, 0:40)
+    r = rnorm(1, 30, 2)
+    points(x, 1, pch = 15)
+    i = 0
+    while (i <= r) {
+        i = i + 1
+        segments(x, 1, x + i, 1)
+        if (x + i >= y)
+            points(y, 1, pch = 19)
+        Sys.sleep(0.1)
+    }
+    points(y, 1, pch = 19)
+    title(ifelse(x + r <= y, "poor... missed the train!", "Bingo! catched the train!"))
+    Sys.sleep(4)
+    x + r > y
+})
+
+# 用R定闹钟 
+Sys.sleep(5)
+replicate(10, {alarm(); Sys.sleep(0.2)})
+
+# 用R唱歌 
+# Uwe Ligges
+library(tuneR)
+Wobj <- bind(sine(440, bit = 16), sine(220, bit = 16))
+play(Wobj)
+
+# 用R跳舞 
+# Yihui Xie
+library(animation)
+par(mar = c(3, 2.5, 1, 0.2), pch = 20, mgp = c(1.5, 0.5, 0))
+ani.options(nmax = 200, interval = 0.1)
+buffon.needle(type = "S")
+
+# 用R检验老年痴呆症 
+alzheimer.test = function(char1 = c("9", "O", "M", 
+    "己"), char2 = c("6", "C", "N", "已"), nr = 10, nc = 30, 
+    seed = NULL, ...) {
+    cat("This is a REAL neurological test. Sit comfortably and be calm.\n\n")
+    mlen = max(length(char1), length(char2), length(nr), length(nc))
+    char1 = rep(char1, length = mlen)
+    char2 = rep(char2, length = mlen)
+    nr = rep(nr, length = mlen)
+    nc = rep(nc, length = mlen)
+    if (!is.null(seed)) 
+        set.seed(seed, ...)
+    tm1 = tm2 = ans = ans.u = ans.t = NULL
+    for (j in 1:mlen) {
+        x = rep(char1[j], nr[j] * nc[j])
+        idx = sample(nr[j] * nc[j], 1)
+        x[idx] = char2[j]
+        mx = matrix(x, nr[j], nc[j])
+        cat("\n\nTEST ", j, "\n")
+        writeLines(formatUL(c(paste("Find the \"", char2[j], 
+            "\" below", sep = ""), "Do not use any cursor help"), 
+            offset = 2))
+        cat("\n")
+        m = menu(c("Ready, Go!", "Let me quit the test!"))
+        if (m == 0 | m == 2) {
+            j = j - 1
+            break
+        }
+        tmp = Sys.time()
+        cat("\n")
+        cat(apply(mx, 1, paste, collapse = ""), sep = "\n")
+        cat("\nFind it now?\n")
+        m = menu(c("Yes! (Input the answer later)", "No... (See the answer later)"))
+        tm1 = c(tm1, as.numeric(difftime(Sys.time(), tmp, units = "secs")))
+        ans.true = c(ifelse(idx%%nr[j] == 0, nr[j], idx%%nr[j]), 
+            idx%/%nr[j] + 1)
+        tmp = Sys.time()
+        if (m == 0 | m == 2) {
+            cat("\nCharacter \"", char2[j], "\" is at [", ifelse(idx%%nr[j] == 
+                0, nr[j], idx%%nr[j]), ", ", idx%/%nr[j] + 1, 
+                "].\n\n\n", sep = "")
+            ans = c(ans, 3)
+            ans.user = c(NA, NA)
+        }
+        else {
+            cat("\nPlease input the Row number and Column number respectively\n  when you find the character:\n")
+            ans.user = scan(nmax = 2)
+            if (length(ans.user) == 2 & is.numeric(ans.user)) {
+                ans = c(ans, as.integer(all(ans.user == ans.true)))
+            }
+            else ans = c(ans, 2)
+            if (ans[length(ans)] != 1) 
+                cat("\nWrong answer! :( \nThe correct answer should be: ", 
+                  ans.true, "\n\n\n")
+        }
+        ans.u = rbind(ans.u, ans.user)
+        ans.t = rbind(ans.t, ans.true)
+        tm2 = c(tm2, as.numeric(difftime(Sys.time(), tmp, units = "secs")))
+        if (j < mlen) {
+            for (i in 1:round(max(nc) * 1.5)) {
+                cat("  [Take a rest and continue the next test> ", 
+                  rep("-", i), ">\r", sep = "")
+                flush.console()
+                Sys.sleep(0.1)
+            }
+        }
+        else {
+            for (i in 1:round(max(nc) * 1.5)) {
+                cat("  [All tests are finished; see the results> ", 
+                  rep("-", i), ">\r", sep = "")
+                flush.console()
+                Sys.sleep(0.1)
+            }
+        }
+    }
+}
+x = alzheimer.test() 

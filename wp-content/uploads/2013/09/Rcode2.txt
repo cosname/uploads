@@ -1,0 +1,60 @@
+library(MASS)
+set.seed(100)
+
+
+png("LordPlot.png", height = 6, width = 6, units = "in", res = 500)
+## Lord paradox: numerical example
+
+## male student
+N1  = 3000
+mu1 = c(150, 150)
+cov1= matrix(c(60, 40, 40, 60), 2, 2)
+
+Y1  = mvrnorm(N1, mu1, cov1)
+
+apply(Y1, 2, mean)
+
+## female student
+N0  = 3000
+mu0 = c(130, 130)
+cov0= matrix(c(60, 40, 40, 60), 2, 2)
+
+Y0  = mvrnorm(N0, mu0, cov0)
+
+apply(Y0, 2, mean)
+
+
+## plot the data
+
+x.min = min(Y1, Y0) - 10
+x.max = max(Y1, Y0) + 10
+
+plot(Y1, xlim = c(x.min, x.max), ylim = c(x.min, x.max), pch = "m", col = 3,
+     xlab = "X: Weight (Sep 1963)", ylab = "Y: Weight (June 1964)",
+     main = "Lord's Paradox")
+
+points(Y0, pch = "f", col = 2)
+
+abline(0, 1, lty = 2)
+
+points(mu1[1], mu1[2], pch = 19)
+points(mu0[1], mu0[2], pch = 19)
+
+
+legend(160, 120, c("male", "female"), pch = c("m", "f"), col = c(3, 2))
+
+## regression without interaction
+D1 = cbind(Y1, 1)
+D0 = cbind(Y0, 0)
+D  = rbind(D1, D0)
+D  = data.frame(D)
+colnames(D) = c("sep", "june", "sex")
+
+fit.lm  = lm(june ~ sep + sex, data = D)
+coef.lm = coef(fit.lm)
+
+abline(coef.lm[1], coef.lm[2], lwd = 2)
+abline(coef.lm[1] + coef.lm[3], coef.lm[2], lwd = 2)
+
+text(120, 160, expression(widehat(beta)[g]==6.34))
+dev.off()

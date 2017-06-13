@@ -1,4 +1,5 @@
 library(rvest)
+library(stringr)
 list = jsonlite::fromJSON("https://raw.githubusercontent.com/Lchiffon/cosx.org/aloglia/index.json")
 # URL = sub("cosx.org","cos.name",list$url)
 URL = list$url
@@ -22,13 +23,14 @@ dirNames = sapply(fileNames, function(x){
 
 # setwd("D:/git/uploads/")
 
-
+link(".log")
 for(i in 1: length(downloadURL)){
   print(downloadURL[i])
   if(!dir.exists(dirNames[i]))
     dir.create(dirNames[i],recursive = T)
   download.file(downloadURL[i],fileNames[i],"curl")
 }
+link("")
 # 
 # 
 # Warning messages:
@@ -43,3 +45,51 @@ for(i in 1: length(downloadURL)){
 # 6: In download.file(downloadURL[i], fileNames[i], "curl") :
 # 下载退出状态不是零
 save(list, downloadURL, file = "local.Rdata")
+
+setwd("../cosx.org2/content/")
+files = dir(recursive = T, full.names = T)
+
+outList = list()
+# outList2 = list()
+for(file in files){
+  print(file)
+  tmpstr = readLines(file, encoding = 'UTF-8') %>% paste0(collapse='\n')
+  tmp = str_extract_all(tmpstr,
+                        "(?<=\\()https://cos.name/wp(\\w|\\+|%|@|（|）|—|\\_|\\-|\\.|/)+(?=(\\)| \"))")
+  # tmp2 = str_extract_all(tmpstr,
+  #                       "(?<=\\()https://cos.name/wp")
+  # outList = append(outList, list(
+  #                  data.frame(str=tmp[[1]],
+  #                                file = rep(file,length(tmp[[1]])))
+  #                  ))
+  # outList2 = append(outList2, list( data.frame(str=tmp2[[1]],
+  #                                       file = rep(file,length(tmp2[[1]])))))
+  outList = append(outList, list(str=tmp[[1]]))
+  # newstr = str_replace_all()
+}
+
+setwd("../../uploads")
+# library(dplyr)
+# downloadURL2 = do.call(rbind, outList) %>% group_by(file) %>% summarise(n=n())
+# downloadURL3 = do.call(rbind, outList2) %>% group_by(file) %>% summarise(n=n())
+# downloadURL2 %>% left_join(downloadURL3, 'file') %>% filter(n.x!=n.y) %>% View
+downloadURL = do.call(c, outList) 
+
+fileNames = downloadURL %>% gsub("https://cos.name/","./",.)
+dirNames = sapply(fileNames, function(x){
+  out = strsplit(x,"/")[[1]]
+  n = length(out)
+  return(paste0(out[-n], collapse = "/"))
+})
+
+# setwd("D:/git/uploads/")
+
+
+for(i in 1: length(downloadURL)){
+  print(downloadURL[i])
+  if(!dir.exists(dirNames[i]))
+    dir.create(dirNames[i],recursive = T)
+  if(!file.exists(fileNames[i]))
+    download.file(downloadURL[i],fileNames[i],"curl")
+}
+
